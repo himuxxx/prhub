@@ -1,0 +1,31 @@
+services:
+  telegram-bot-api:
+    image: aiogram/telegram-bot-api:latest
+    restart: unless-stopped
+    environment:
+      TELEGRAM_API_ID: ${API_ID}
+      TELEGRAM_API_HASH: ${API_HASH}
+      TELEGRAM_LOCAL: "1"
+    volumes:
+      - telegram_api_data:/var/lib/telegram-bot-api
+    expose:
+      - "8081"
+
+  bot:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - telegram-bot-api
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DB: ${MONGO_DB:-tg_downloader}
+      BOT_API_URL: http://telegram-bot-api:8081
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-2147483648}
+      MAX_CONCURRENT: ${MAX_CONCURRENT:-1}
+      DOWNLOAD_DIR: /data/downloads
+    volumes:
+      - ./data:/data/downloads
+
+volumes:
+  telegram_api_data:
